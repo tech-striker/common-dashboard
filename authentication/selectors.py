@@ -73,7 +73,6 @@ def update_user(input_data, user):
         user.name = input_data['profile_image']
     if 'is_active' in input_data:
         user.is_active = True
-    import pdb;pdb.set_trace()
     return generate_response(data=user.id, message='User updated', status=HTTP_200_OK)
 
 

@@ -10,6 +10,8 @@ click==7.1.1
 cryptography==3.4.7
 decorator==5.0.9
 dictdiffer==0.8.1
+dnspython==1.16.0
+eventlet==0.31.1
 Flask==1.1.2
 Flask-Bcrypt==0.7.1
 Flask-Mail==0.9.1

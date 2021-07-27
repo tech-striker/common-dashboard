@@ -4,23 +4,31 @@ from utils.db.base_model import AbstractBaseModel
 from authentication.models import UserLoginInfo
 
 
-class Group(AbstractBaseModel):
-    admin = ReferenceField(UserLoginInfo, )
+class ChatRoom(AbstractBaseModel):
+    creator = ReferenceField(UserLoginInfo)
+    is_group = BooleanField(default=True)
+    admins = ListField(ReferenceField(UserLoginInfo), default=list)
     name = StringField(required=True)
-    is_active = BooleanField(default=True)
-    participants = ListField(ReferenceField(UserLoginInfo))
+    image = URLField(required=False)
+    status = MultiLineStringField(required=False)
+    participants = ListField(ReferenceField(UserLoginInfo), default=list)
 
 
-class MessageRecipient(AbstractBaseModel):
-    recipient = ReferenceField(UserLoginInfo)
-    recipient_group = ReferenceField(Group)
-    is_read = BooleanField(default=False)
+class MessageRecipients(EmbeddedDocument):
+    is_received = ListField(ReferenceField(UserLoginInfo), default=list)
+    is_read = ListField(ReferenceField(UserLoginInfo), default=list)
+    room = ReferenceField(ChatRoom)
+
+
+class MessageMedia(EmbeddedDocument):
+    link = URLField(required=False)
+    caption = StringField(required=False)
 
 
 class Message(AbstractBaseModel):
     sender = ReferenceField(UserLoginInfo)
-    message_body = MultiLineStringField(required=True)
     type = StringField(choices=MESSAGE_TYPES, default=DEFAULT_MESSAGE_TYPE, required=True)
+    message_body = MultiLineStringField(required=True)
+    message_media = EmbeddedDocumentField(MessageMedia)
     is_sent = BooleanField(default=False)
-    is_received = BooleanField(default=False)
-    is_read = BooleanField(default=False)
+    recipients = EmbeddedDocumentListField(MessageRecipients)

@@ -6,8 +6,7 @@ from flask_mongoengine import MongoEngine
 from authentication.routes import create_authentication_routes
 import os
 from flask_mail import Mail
-
-from flask_socketio import SocketIO, emit
+from socketsio import create_socketio, socketio
 
 # init mongoengine
 db = MongoEngine()
@@ -15,7 +14,6 @@ db = MongoEngine()
 # init jwt manager
 # jwt = JWTManager()
 
-socketio = SocketIO()
 
 # init flask mail
 mail = Mail()
@@ -69,9 +67,7 @@ def get_flask_app(config: dict = None) -> app.Flask:
     # init api and routes
     api = Api(app=flask_app)
     create_authentication_routes(api=api)
-
     from chat.routes import create_chat_routes
-
     create_chat_routes(api=api)
 
     db.init_app(flask_app)
@@ -81,8 +77,6 @@ def get_flask_app(config: dict = None) -> app.Flask:
     mail.init_app(flask_app)
 
     # socket.init_app(flask_app)
-
-    socketio.init_app(flask_app)
 
     return flask_app
 
@@ -95,4 +89,5 @@ if __name__ == '__main__':
     # socketio = SocketIO(app, debug=True)
 
     # app = get_flask_app()
-    app.run(host='127.0.0.1', debug=True)
+    create_socketio(app)
+    socketio.run(app, host='127.0.0.1', debug=True)
