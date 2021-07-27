@@ -90,4 +90,4 @@ if __name__ == '__main__':
 
     # app = get_flask_app()
     create_socketio(app)
-    socketio.run(app, host='127.0.0.1', debug=True)
+    socketio.run(app, host=os.environ.get('HOST'), port=os.environ.get('PORT'), debug=True)
