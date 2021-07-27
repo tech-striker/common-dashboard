@@ -7,6 +7,7 @@ from app import app
 from chat.models import ChatRoom, MessageRecipients, MessageMedia, Message
 from utils.common import generate_response
 from utils.http_code import *
+import json
 
 users = []  # list of users
 channels = ["Main Channel", "Second Channel"]  # list of channels
@@ -71,6 +72,8 @@ from authentication.models import UserLoginInfo
 
 @socketio.on("new_room_create")
 def create_new_channel(data):
+    import pdb;
+    pdb.set_trace()
     print(data)
     print('New channel')
     """ Checks whether a channel can be created. If so, this updates the
@@ -79,16 +82,22 @@ def create_new_channel(data):
     # channel = clean_up_channel_name(data["channel"])
     error = validate_room(data)
     if error:
-        emit("room creation failed", error, broadcast=False)
+        emit("room_creation_failed", error, broadcast=False)
+    user_id = '3deef3340e1340fe9eb426ba46cb4c46'
     chat_room = ChatRoom(name=data['name'] if 'name' in data else '')
-    chat_room.creator = UserLoginInfo.objects.get(id=data['user_id'])
+    chat_room.creator = UserLoginInfo.objects.get(id=user_id)
     chat_room.is_group = data['is_group'] if 'is_group' in data else False
-    chat_room.admins.appends(UserLoginInfo.objects.get(id=data['user_id']))
-    participant_ids = data['participants'] if 'participants' else []
-    for participant in participant_ids:
-        chat_room.participants.append(UserLoginInfo.objects.get(id=participant['id']))
     chat_room.save()
-    emit("add_room", {"channel": chat_room}, broadcast=True)
+    admins = UserLoginInfo.objects.get(id=user_id)
+    chat_room.name = data['name']
+    chat_room.admins = [admins]
+    participant_ids = data['participants'] if 'participants' else []
+    participants = [admins]
+    for participant in participant_ids:
+        participants.append(UserLoginInfo.objects.get(id=participant))
+    chat_room.participants = participants
+    chat_room.save()
+    emit("add_room", {"channel": json.loads(chat_room.to_json())}, broadcast=True)
 
 
 # @socketio.on("move to channel")
@@ -159,8 +168,8 @@ def get_timestamp_trunc():
 
 
 def validate_room(data):
-    if 'user_id' not in data or not data['user_id']:
-        return generate_response(message='user_id is required', status=HTTP_400_BAD_REQUEST)
+    if 'participants' not in data or not type(data['participants']) is list:
+        return generate_response(message='invalid participants', status=HTTP_400_BAD_REQUEST)
     if 'is_group' in data and data['is_group']:
         if 'name' not in data or not data['name']:
             return generate_response(message='Group name is required', status=HTTP_400_BAD_REQUEST)

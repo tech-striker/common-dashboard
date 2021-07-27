@@ -4,7 +4,7 @@ import uuid
 
 
 class AbstractBaseModel(Document):
-    id = UUIDField(db_field='id', primary_key=True, default=uuid.uuid4, editable=False)
+    id = UUIDField(db_field='id', primary_key=True, default=uuid.uuid4().hex, editable=False)
     created_at = DateTimeField(default=datetime.datetime.utcnow())
     updated_at = DateTimeField(default=datetime.datetime.utcnow())
 

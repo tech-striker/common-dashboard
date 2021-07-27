@@ -8,9 +8,16 @@ import os
 from .models import MessageMedia, MessageRecipients, Message, ChatRoom
 
 
-def get_channels(input_data):
+def get_rooms(input_data, user_id):
     try:
-        rooms = ChatRoom.objects(participants__in=input_data['user_id'])
+        rooms = ChatRoom.objects(participants__in=user_id)
     except:
         rooms = ChatRoom.objects.all()
+
+    for room in rooms:
+        if not room.is_group:
+            if user_id == room.participants[0].id:
+                room.name = room.participants[-1].name
+            else:
+                room.name = room.participants[0].name
     return rooms

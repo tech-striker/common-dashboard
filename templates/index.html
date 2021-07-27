@@ -42,7 +42,7 @@ Main Page
         <div class="col-12">
           <div class="btn-group-vertical ml-2 my-2" role="group" id="channel-button-list">
             {% for channel in channels %}
-            <button class="btn btn-secondary" id="{{ channel }}" name="channel-button" type="submit">{{ channel }}
+            <button class="btn btn-secondary" id="{{ channel['name'] }}" name="channel-button" type="submit">{{ channel['name'] }}
               {% endfor %}
           </div>
         </div>
