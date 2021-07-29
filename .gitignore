@@ -7,7 +7,7 @@ chat/__pycache__/views.cpython-36.pyc
 
 # C extensions
 *.so
-
+nohup.out
 # Distribution / packaging
 .Python
 build/

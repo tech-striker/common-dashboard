@@ -65,15 +65,18 @@ def social_login(request, input_data):
 
 
 def update_user(input_data, user):
-    if 'name' in input_data or input_data['name']:
+    if 'name' in input_data and input_data['name']:
         user.name = input_data['name']
-    if 'phone' in input_data or input_data['phone']:
-        user.name = input_data['phone']
-    if 'profile_image' in input_data or input_data['profile_image']:
-        user.name = input_data['profile_image']
+    if 'phone' in input_data and input_data['phone']:
+        user.phone = input_data['phone']
+    if 'profile_image' in input_data and input_data['profile_image']:
+        user.profile_image = input_data['profile_image']
+    if 'intro' in input_data and input_data['intro']:
+        user.intro = input_data['intro']
     if 'is_active' in input_data:
         user.is_active = True
-    return generate_response(data=user.id, message='User updated', status=HTTP_200_OK)
+    user.save()
+    return generate_response(data=user.to_json(), message='User updated', status=HTTP_200_OK)
 
 
 def get_refresh_access_token(request, user):

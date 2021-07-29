@@ -99,6 +99,7 @@ class UserLoginInfo(AbstractBaseModel):
             "id": str(self.pk),
             "role": self.role,
             "email": self.email,
+            "name": self.name,
             "phone": self.phone,
             "intro": self.intro,
             "profile_image": self.profile_image,
