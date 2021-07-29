@@ -94,9 +94,10 @@ def get_location(ip):
     return location
 
 
-def get_user_from_token(request):
+def get_user_from_token(request=None, token=None):
     from utils.jwt.jwt_security import get_token, JwtAuth
-    token = get_token(request)
+    if not token:
+        token = get_token(request)
     Jwt = JwtAuth(token)
     user, headers = Jwt.decode()[0], Jwt.decode()[1]
     return user
@@ -115,25 +116,25 @@ class TokenGenerator:
     @staticmethod
     def encode_token(user):
 
-        payload = {"exp": datetime.now(timezone.utc) + timedelta(days=1), "id": str(user.id.hex)}
+        payload = {"exp": datetime.now(timezone.utc) + timedelta(days=1), "id": str(user.id)}
         token = jwt.encode(payload, os.environ.get('JWT_SECRET_KEY'), algorithm="HS256")
         return token
 
     @staticmethod
     def decode_token(token):
-        return jwt.decode(token, os.environ.get('JWT_SECRET_KEY'), options={"require_exp": True})
+        return jwt.decode(token, os.environ.get('JWT_SECRET_KEY'), algorithms="HS256", options={"require_exp": True})
 
     @staticmethod
     def check_token(token):
         try:
-            jwt.decode(token, os.environ.get('JWT_SECRET_KEY'), options={"require_exp": True})
+            jwt.decode(token, os.environ.get('JWT_SECRET_KEY'), algorithms="HS256", options={"require_exp": True})
             return True
         except:
             return False
 
     @staticmethod
     def get_user_id(token):
-        data = jwt.decode(token, os.environ.get('JWT_SECRET_KEY'), options={"require_exp": True})
+        data = jwt.decode(token, os.environ.get('JWT_SECRET_KEY'), algorithms="HS256", options={"require_exp": True})
         return data['id']
 
 

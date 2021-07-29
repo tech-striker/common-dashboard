@@ -1,5 +1,6 @@
 /* globals io */
 
+
 document.addEventListener('DOMContentLoaded', () => {
     // Global vars
     let username = null;
@@ -10,9 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     form.style.display = 'none';
 
     // Connect to websocket
-    const socket = io.connect(
-        `${window.location.protocol}//${document.domain}:${window.location.port}`
+    const socket = io.connect(`${window.location.protocol}//${document.domain}:${window.location.port}`
     );
+
+    socket.emit('get_chats', {'token': localStorage.getItem('token')})
 
     // By default, ensure the login submit button is disabled
     document.querySelector('#login_submit_button').disabled = true;
@@ -99,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // ? If the username is already set in local storage
-        if (localStorage.getItem('username')) {
+        if (localStorage.getItem('token')) {
             // Unhide chatroom
             unhideChatroom();
 
@@ -130,7 +132,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clear the input field and disable the button again
             document.querySelector('#new-channel-input').value = '';
             document.querySelector('#new-channel-button').disabled = true;
-            data = {name: channel, participants: ['e0c604d51f3e408095c604ad5dd8a835']}
+            data = {
+                name: channel,
+                participants: ['61010d7ce4c9786a417b4113'],
+                Authorization: localStorage.getItem('token'),
+                is_group: true
+            }
+
             // Broadcast the channel creation to the server
             socket.emit('new_room_create', data);
 
@@ -163,18 +171,27 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // ? If channel name fails, throw up an alert
+// ? If channel name fails, throw up an alert
     socket.on('room_creation_failed', () => {
         alert('Channel already exists. Try another name.');
     });
 
-    // ? If channel name was successful
+    socket.on('set_chats', data => {
+        debugger;
+        html = ''
+        for (let d of data['chats']) {
+            html += `<button class="btn btn-secondary" id="${d['name']}" name="channel-button" type="submit">${d['name']}</button>`
+        }
+        document.getElementById('channel-button-list').innerHTML = html
+    })
+
+// ? If channel name was successful
     socket.on('add_room', data => {
         // Grab the channel name added, uses object destructuring
         debugger;
         const {channel} = data;
-        debugger;
         // Create the button for the channel
+        console.log('dfaljdlkfsaklfjlksfkl;jsdl')
         const button = document.createElement('button');
         button.className = 'btn btn-secondary';
         button.id = channel.name;
@@ -187,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('#channel-button-list').append(button);
     });
 
-    // ? If the username logs in successfully
+// ? If the username logs in successfully
     socket.on('new user', data => {
         // Update the global username
         // eslint-disable-next-line prefer-destructuring
@@ -213,14 +230,14 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.emit('move to channel', {channel: 'Main Channel'});
     });
 
-    // ? If the username is already taken
+// ? If the username is already taken
     socket.on('username taken', () => {
         // Alert the user that the name is taken
         document.querySelector('#username-taken').innerHTML =
             '<i class="my-0">Username taken!</i>';
     });
 
-    // ? Enters the channel room, unload previous chat, load new chat
+// ? Enters the channel room, unload previous chat, load new chat
     socket.on('enter channel room', data => {
         // Set variables
         const {messages} = data;
@@ -292,13 +309,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ? Handle invalid channel name with a prompt
+// ? Handle invalid channel name with a prompt
     socket.on('invalid channel name', () => {
         alert('Invalid channel name!');
     });
 
-    // ? Default channel name
+// ? Default channel name
     socket.on('default channel', () => {
         currentChannel = 'Main Channel';
     });
-});
+})
+;

@@ -1,4 +1,6 @@
-from mongoengine import *
+from werkzeug.routing import ValidationError
+
+from app import db
 from utils.common import generate_response
 from utils.constants import *
 from utils.db.base_model import AbstractBaseModel
@@ -25,34 +27,32 @@ def validate_email(email):
         return False
 
 
-class Language(EmbeddedDocument):
-    id = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = StringField(default='English')
-    code = StringField(default='en')
+class Language(db.EmbeddedDocument):
+    id = db.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = db.StringField(default='English')
+    code = db.StringField(default='en')
 
 
 class UserLoginInfo(AbstractBaseModel):
-    parent = StringField(required=False)
-    auth_type = StringField(choices=LOGIN_TYPE, required=True)
-    role = StringField(choices=ROLE_TYPE, required=True)
-    email = EmailField(required=True, unique=True)
-    password = StringField(required=True, min_length=6, regex=None)
-    name = StringField(default='', required=False)
-    phone = StringField(default='', required=False)
-    intro = StringField(default='', required=False)
-    profile_image = URLField(default='https://www.classifapp.com/wp-content/uploads/2017/09/avatar-placeholder.png',
+    parent = db.StringField(required=False)
+    auth_type = db.StringField(choices=LOGIN_TYPE, required=True)
+    role = db.StringField(choices=ROLE_TYPE, required=True)
+    email = db.EmailField(required=True, unique=True)
+    password = db.StringField(required=True, min_length=6, regex=None)
+    name = db.StringField(default='', required=False)
+    phone = db.StringField(default='', required=False)
+    intro = db.StringField(default='', required=False)
+    profile_image = db.URLField(default='https://www.classifapp.com/wp-content/uploads/2017/09/avatar-placeholder.png',
                              required=False)
-    social_id = StringField(default='', required=False)
-    language = EmbeddedDocumentField(Language)
-    is_active = BooleanField(default=True)
-    is_deleted = BooleanField(default=False)
-    is_verified = BooleanField(default=False)
+    social_id = db.StringField(default='', required=False)
+    language = db.EmbeddedDocumentField(Language)
+    is_active = db.BooleanField(default=True)
+    is_deleted = db.BooleanField(default=False)
+    is_verified = db.BooleanField(default=False)
 
     def generate_pw_hash(self):
         self.password = generate_password_hash(password=self.password).decode('utf-8')
-
-    # Use documentation from BCrypt for password hashing
-    generate_pw_hash.__doc__ = generate_password_hash.__doc__
+        return self.password
 
     def check_pw_hash(self, password: str) -> bool:
         return check_password_hash(pw_hash=self.password, password=password)
@@ -71,17 +71,17 @@ class UserLoginInfo(AbstractBaseModel):
             return generate_response(message='Auth type is missing or invalid.')
         return None
 
-    def save(self, *args, **kwargs):
-        # Overwrite Document save method to generate password hash prior to saving
-        if self._created:
-            self.generate_pw_hash()
+    def create_user(self, *args, **kwargs):
+        user = UserLoginInfo(**kwargs)
+        user.email = kwargs['email']
+        user.password = self.generate_pw_hash()
+        # user.save()
         super(UserLoginInfo, self).save(*args, **kwargs)
 
     meta = {
         'auto_create_index': True,
         'index_background': True,
         'indexes': [
-
             {
                 'name': 'email',
                 'fields': ('email',),
@@ -93,3 +93,16 @@ class UserLoginInfo(AbstractBaseModel):
             }
         ]
     }
+
+    def to_json(self, *args, **kwargs):
+        return {
+            "id": str(self.pk),
+            "role": self.role,
+            "email": self.email,
+            "phone": self.phone,
+            "intro": self.intro,
+            "profile_image": self.profile_image,
+            "language": self.language,
+            "is_active": self.is_active,
+            "auth_type": self.auth_type
+        }

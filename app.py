@@ -3,7 +3,6 @@ from flask import Flask, app
 from flask_restful import Api
 from flask_mongoengine import MongoEngine
 # from flask_jwt_extended import JWTManager
-from authentication.routes import create_authentication_routes
 import os
 from flask_mail import Mail
 from socketsio import create_socketio, socketio
@@ -68,28 +67,20 @@ def get_flask_app(config: dict = None) -> app.Flask:
 
     # init api and routes
     api = Api(app=flask_app)
+    from authentication.routes import create_authentication_routes
     create_authentication_routes(api=api)
     from chat.routes import create_chat_routes
     create_chat_routes(api=api)
 
     db.init_app(flask_app)
 
-    # jwt.init_app(flask_app)
-
     mail.init_app(flask_app)
-
-    # socket.init_app(flask_app)
 
     return flask_app
 
 
 if __name__ == '__main__':
     # Main entry point when run in stand-alone mode.
-
     app = get_flask_app()
-    # app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
-    # socketio = SocketIO(app, debug=True)
-
-    # app = get_flask_app()
     create_socketio(app)
     socketio.run(app, host=os.environ.get('HOST'), port=os.environ.get('PORT'), debug=True)

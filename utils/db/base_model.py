@@ -1,12 +1,15 @@
-from mongoengine import Document, DateTimeField, UUIDField
+from app import db
 import datetime
 import uuid
+import mongoengine_goodjson as gj
+
+UUID = str(uuid.uuid4())
 
 
-class AbstractBaseModel(Document):
-    id = UUIDField(db_field='id', primary_key=True, default=uuid.uuid4().hex, editable=False)
-    created_at = DateTimeField(default=datetime.datetime.utcnow())
-    updated_at = DateTimeField(default=datetime.datetime.utcnow())
+class AbstractBaseModel(db.Document):
+    # _id = UUIDField(db_field='id', primary_key=True, default=UUID, editable=False)
+    created_at = db.DateTimeField(default=datetime.datetime.utcnow())
+    updated_at = db.DateTimeField(default=datetime.datetime.utcnow())
 
     meta = {
         'allow_inheritance': True,

@@ -29,7 +29,7 @@ def login_user(request, input_data):
         return generate_response(data={'access_token': access_token,
                                        'refresh_token': refresh_token,
                                        'logged_in_as': f"{user.email}",
-                                       'meta': user
+                                       'meta': user.to_json()
                                        }, status=HTTP_200_OK)
 
 

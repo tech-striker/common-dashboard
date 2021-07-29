@@ -10,12 +10,12 @@ def send_verification_email(request, input_data, user):
     current_site = request.url_root
     mail_subject = 'Common Dashboard: Verify your account'
     domain = current_site
-    uid = user.id.hex
+    uid = user.id
     token = account_activation_token.encode_token(user)
     msg = Message(
         mail_subject,
         sender='nkcse0007@gmail.com',
         recipients=[user.email]
     )
-    msg.html = f"Please click on the link to confirm your registration, {domain}api/auth/verify-account/?uid={uid}&&token={token}"
+    msg.html = f"Please click on the link to confirm your registration, {domain}api/auth/verify-account/{uid}/{token}"
     mail.send(msg)

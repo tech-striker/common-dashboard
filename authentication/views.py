@@ -23,7 +23,6 @@ class SignUpApi(Resource):
         """
         input_data = request.get_json()
         response = create_user(request, input_data)
-
         return jsonify(response)
 
 

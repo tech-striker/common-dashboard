@@ -8,6 +8,8 @@ from chat.models import ChatRoom, MessageRecipients, MessageMedia, Message
 from utils.common import generate_response
 from utils.http_code import *
 import json
+from utils.common import get_user_from_token
+from chat.selectors import get_rooms
 
 users = []  # list of users
 channels = ["Main Channel", "Second Channel"]  # list of channels
@@ -35,6 +37,14 @@ messages_dict = {
     ]
 }
 message_limit = 100
+
+
+@socketio.on('get_chats')
+def get_chats(data):
+    user = get_user_from_token(token=data['token'])
+    chats = get_rooms(data, user['id'])
+    socketio.emit('set_chats', {'chats': [chat.to_json() for chat in chats]})
+
 
 # @socketio.on("confirm login")
 # def confirm_login(data):
@@ -72,21 +82,22 @@ from authentication.models import UserLoginInfo
 
 @socketio.on("new_room_create")
 def create_new_channel(data):
-    import pdb;
-    pdb.set_trace()
     print(data)
     print('New channel')
     """ Checks whether a channel can be created. If so, this updates the
         channel list and broadcasts the new channel.
     """
     # channel = clean_up_channel_name(data["channel"])
-    error = validate_room(data)
+    from utils.common import get_user_from_token
+    user_id = get_user_from_token(token=data['Authorization'])
+    error = validate_room(data, user_id)
     if error:
         emit("room_creation_failed", error, broadcast=False)
-    user_id = '3deef3340e1340fe9eb426ba46cb4c46'
+    from utils.common import get_user_from_token
+    user_id = get_user_from_token(data['Authorization'] if 'Authorization' in data else '61010e5289d57973f9010b04')
     chat_room = ChatRoom(name=data['name'] if 'name' in data else '')
     chat_room.creator = UserLoginInfo.objects.get(id=user_id)
-    chat_room.is_group = data['is_group'] if 'is_group' in data else False
+    chat_room.is_group = data['is_group'] if 'is_group' in data else True
     chat_room.save()
     admins = UserLoginInfo.objects.get(id=user_id)
     chat_room.name = data['name']
@@ -167,14 +178,19 @@ def get_timestamp_trunc():
     return timestamp[:-5]
 
 
-def validate_room(data):
+def validate_room(data, user_id):
     if 'participants' not in data or not type(data['participants']) is list:
         return generate_response(message='invalid participants', status=HTTP_400_BAD_REQUEST)
-    if 'is_group' in data and data['is_group']:
-        if 'name' not in data or not data['name']:
-            return generate_response(message='Group name is required', status=HTTP_400_BAD_REQUEST)
-        if ChatRoom.objects(name=data['name']):
-            return generate_response(message='Group with this name is already exists', status=HTTP_400_BAD_REQUEST)
+    if 'is_group' in data:
+        if data['is_group']:
+            if 'name' not in data or not data['name']:
+                return generate_response(message='Group name is required', status=HTTP_400_BAD_REQUEST)
+            if ChatRoom.objects(name=data['name']):
+                return generate_response(message='Group with this name is already exists', status=HTTP_400_BAD_REQUEST)
+        else:
+            chat_room = ChatRoom.objects(participants__in=[user_id['id'], data['participants'][0]])
+            if chat_room:
+                return generate_response(data=chat_room[0].to_json(), status=HTTP_200_OK)
 
     return None
 
