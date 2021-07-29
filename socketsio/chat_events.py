@@ -10,6 +10,8 @@ from utils.http_code import *
 import json
 from utils.common import get_user_from_token
 from chat.selectors import get_rooms
+from app import session
+from flask import request
 
 users = []  # list of users
 channels = ["Main Channel", "Second Channel"]  # list of channels
@@ -39,11 +41,36 @@ messages_dict = {
 message_limit = 100
 
 
+@socketio.on('connected')
+def connect(data):
+    if not check_if_sid_exists(data):
+        session.chat_clients[data['sid']] = {
+            'sid': request.sid,
+            'user': get_user_from_token(token=data['token'])
+        }
+
+
+@socketio.on('disconnect')
+def disconnect():
+    del (session.chat_clients[request.sid])
+
+
+def check_if_sid_exists(data):
+    try:
+        sid = session.chat_clients[data['sid']]
+        return True
+    except:
+        return False
+
+
 @socketio.on('get_chats')
 def get_chats(data):
     user = get_user_from_token(token=data['token'])
     chats = get_rooms(data, user['id'])
-    socketio.emit('set_chats', {'chats': [chat.to_json() for chat in chats]})
+    # callable({
+    #     'chats': [chat.to_json() for chat in chats]
+    # })
+    emit('set_chats', {'chats': [chat.to_json() for chat in chats]})
 
 
 # @socketio.on("confirm login")
@@ -124,7 +151,7 @@ def create_new_channel(data):
 #         emit("enter channel room", {"channel": channel, "messages": messages})
 
 
-@socketio.on("new message")
+@socketio.on("new_message")
 def new_message(data):
     print(data)
     print('New Message Loggedin')
@@ -135,23 +162,28 @@ def new_message(data):
     if errors:
         emit("message_failed", errors, broadcast=False)
     timestamp = get_timestamp_trunc()
+    user = get_user_from_token(token=data['token'])
+    sender = UserLoginInfo.objects.get(id=user['id'])
+    room_data = ChatRoom.objects.get(id=data['room'])
+    recipients = []
+    for participant in room_data.participants:
+        message_recipients = MessageRecipients(recipient=participant)
+        message_recipients.room = room_data
+        recipients.append(message_recipients)
 
-    message_recipients = MessageRecipients()
-    message_recipients.room = data['room']
-
-    message = Message(sender=UserLoginInfo.objects.get(id=data['sender']))
+    message = Message(sender=sender)
     message.type = data['type']
     message.message_body = data['message_body']
-    message.recipients = message_recipients
+    message.recipients = recipients
     message.save()
 
     data = {
         "room": data['room'],
-        "message": message,
+        "message_body": message.to_json(),
         "timestamp": timestamp,
-        "sender": data['sender']
+        "sender": sender.to_json()
     }
-    emit("message broadcast", data, broadcast=True)
+    emit("message_broadcast", data, broadcast=True)
 
 
 # @socketio.on("verify channel")
@@ -196,8 +228,8 @@ def validate_room(data, user_id):
 
 
 def validate_message(data):
-    if 'sender' not in data or not data['sender']:
-        return generate_response(message='sender is required', status=HTTP_400_BAD_REQUEST)
+    if 'token' not in data or not data['token']:
+        return generate_response(message='token is required', status=HTTP_400_BAD_REQUEST)
     if 'room' not in data or not data['room']:
         return generate_response(message='room is required', status=HTTP_400_BAD_REQUEST)
     if 'message_body' not in data or not data['message_body']:

@@ -3,11 +3,13 @@ aniso8601==8.0.0
 bcrypt==3.1.7
 bidict==0.21.2
 blinker==1.4
+cachelib==0.2.0
 certifi==2021.5.30
 cffi==1.14.0
 charset-normalizer==2.0.3
 click==7.1.1
 cryptography==3.4.7
+dateutils==0.6.12
 decorator==5.0.9
 dictdiffer==0.8.1
 dnspython==1.16.0
@@ -20,6 +22,7 @@ Flask-Migrate==3.0.1
 flask-mongoengine==0.9.5
 Flask-RESTful==0.3.8
 Flask-Script==2.0.6
+Flask-Session==0.4.0
 Flask-SocketIO==4.3.1
 Flask-SQLAlchemy==2.5.1
 Flask-WTF==0.15.1
@@ -34,6 +37,7 @@ Mako==1.1.4
 MarkupSafe==1.1.1
 migrate==0.3.8
 mongoengine==0.23.1
+mongoengine-goodjson==0.11.3
 mongoengine-migrate==0.0.2
 numpy==1.19.5
 phonenumbers==8.12.27

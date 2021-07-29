@@ -22,14 +22,24 @@ class ChatRoom(AbstractBaseModel):
             'name': self.name,
             'image': self.image,
             'status': self.status,
-            'participants': [participant.to_json() for participant in self.participants]
+            'participants': [participant.to_json() for participant in self.participants],
+            'created_at': self.created_at.timestamp(),
+            'updated_at': self.updated_at.timestamp(),
         }
 
 
 class MessageRecipients(db.EmbeddedDocument):
+    recipient = db.ReferenceField(UserLoginInfo)
+    room = db.ReferenceField(ChatRoom)
     is_received = db.ListField(db.ReferenceField(UserLoginInfo), default=list)
     is_read = db.ListField(db.ReferenceField(UserLoginInfo), default=list)
-    room = db.ReferenceField(ChatRoom)
+
+    def to_json(self):
+        return {
+            'is_received': self.is_received,
+            'is_read': self.is_read,
+            'room': self.room.to_json()
+        }
 
 
 class MessageMedia(db.EmbeddedDocument):
@@ -40,7 +50,19 @@ class MessageMedia(db.EmbeddedDocument):
 class Message(AbstractBaseModel):
     sender = db.ReferenceField(UserLoginInfo)
     type = db.StringField(choices=MESSAGE_TYPES, default=DEFAULT_MESSAGE_TYPE, required=True)
-    message_body = db.MultiLineStringField(required=True)
+    message_body = db.StringField(required=True)
     message_media = db.EmbeddedDocumentField(MessageMedia)
     is_sent = db.BooleanField(default=False)
     recipients = db.EmbeddedDocumentListField(MessageRecipients)
+
+    def to_json(self, *args, **kwargs):
+        return {
+            'sender': self.sender.to_json(),
+            'type': self.type,
+            'message_body': self.message_body,
+            'message_media': self.message_media,
+            'is_sent': self.is_sent,
+            'recipients': [recipient.to_json() for recipient in self.recipients],
+            'created_at': self.created_at.timestamp(),
+            'updated_at': self.updated_at.timestamp(),
+        }

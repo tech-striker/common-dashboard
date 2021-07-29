@@ -7,13 +7,16 @@ import os
 from flask_mail import Mail
 from socketsio import create_socketio, socketio
 from flask_cors import CORS
+from flask_session import Session
 
 # init mongoengine
 db = MongoEngine()
+session = Session()
 
 # init jwt manager
 # jwt = JWTManager()
 
+session.chat_clients = {}
 
 # init flask mail
 mail = Mail()
@@ -39,7 +42,9 @@ default_config = {
     'MAIL_USE_TLS': False,
     'MAIL_USE_SSL': True,
     'SECRET_KEY': os.environ.get('SECRET_KEY'),
-    'JWT_SECRET_KEY': os.environ['JWT_SECRET_KEY']
+    'JWT_SECRET_KEY': os.environ['JWT_SECRET_KEY'],
+    "SESSION_PERMANENT": False,
+    "SESSION_TYPE": "filesystem"
 }
 
 
@@ -75,6 +80,8 @@ def get_flask_app(config: dict = None) -> app.Flask:
     db.init_app(flask_app)
 
     mail.init_app(flask_app)
+
+    session.init_app(flask_app)
 
     return flask_app
 

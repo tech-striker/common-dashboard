@@ -7,13 +7,11 @@ import datetime
 import random
 from utils.jwt.jwt_security import JwtAuth
 import os
+
 from .models import MessageMedia, MessageRecipients, Message, ChatRoom
 
 
 def get_rooms(input_data, user_id):
-    # try:
-    #     rooms = ChatRoom.objects(participants__in=user_id)
-    # except:
     rooms = ChatRoom.objects.select_related(3)
 
     for room in rooms:
@@ -24,3 +22,9 @@ def get_rooms(input_data, user_id):
                 else:
                     room['name'] = room['participants'][0].to_json()['email']
     return rooms
+
+
+def get_messages(input_data):
+    messages = Message.objects(recipients__room=input_data['room'])
+    return generate_response(data={'room': input_data['room'], 'messages': [message.to_json() for message in messages]},
+                             status=HTTP_200_OK)
