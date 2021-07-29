@@ -1,6 +1,5 @@
 /* globals io */
 
-base_url = '127.0.0.1:5000'
 
 function chatHTML(message, user, timestamp) {
     return `
@@ -19,7 +18,7 @@ function chatHTML(message, user, timestamp) {
 
 function select_chat(room_id) {
     localStorage.setItem('currentRoom', room_id)
-    fetch(`http://127.0.0.1:5000/api/message/?room=${room_id}`, headers = {
+    fetch(`${window.location.protocol}//${document.domain}:${window.location.port}/api/message/?room=${room_id}`, headers = {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
     })
         .then(response => response.json())
