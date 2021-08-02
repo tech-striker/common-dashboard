@@ -82,10 +82,12 @@ class UserProfileApi(Resource):
     @staticmethod
     @authenticate_login
     def delete() -> Response:
+
         jwt_payload = get_user_from_token(request)
         user = UserLoginInfo.objects.get(id=jwt_payload['id'])
         user.is_deleted = True
-        return jsonify(generate_response(data=user.id, message='User deleted.', status=HTTP_404_NOT_FOUND))
+        user.save()
+        return jsonify(generate_response(data=user.to_json()['id'], message='User deleted.', status=HTTP_404_NOT_FOUND))
 
     @staticmethod
     @authenticate_login

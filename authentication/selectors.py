@@ -21,6 +21,15 @@ def login_user(request, input_data):
     if not auth_success:
         return generate_response(message='Email or password you provided is invalid. please check it once',
                                  status=HTTP_401_UNAUTHORIZED)
+    if not user.is_active:
+        return generate_response(message='User is blocked by admin, Please contact admin.',
+                                 status=HTTP_401_UNAUTHORIZED)
+    if user.is_deleted:
+        return generate_response(message='User has deleted their account previously, please contact admin.',
+                                 status=HTTP_401_UNAUTHORIZED)
+    if not user.is_verified:
+        return generate_response(message='User is not verified his account, please check your email.',
+                                 status=HTTP_401_UNAUTHORIZED)
     else:
         # access_token = create_access_token(identity=str(user.id), expires_delta=expiry)
         # refresh_token = create_refresh_token(identity=str(user.id))

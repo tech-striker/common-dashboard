@@ -3,8 +3,6 @@ import datetime
 import uuid
 import mongoengine_goodjson as gj
 
-UUID = str(uuid.uuid4())
-
 
 class AbstractBaseModel(db.Document):
     # _id = UUIDField(db_field='id', primary_key=True, default=UUID, editable=False)

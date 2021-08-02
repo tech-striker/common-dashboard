@@ -28,7 +28,6 @@ def validate_email(email):
 
 
 class Language(db.EmbeddedDocument):
-    id = db.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = db.StringField(default='English')
     code = db.StringField(default='en')
 
