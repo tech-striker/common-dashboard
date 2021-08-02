@@ -1,44 +1,18 @@
 import string
 from datetime import datetime
 
-from flask_socketio import emit
 from socketsio import socketio
 from app import app
 from chat.models import ChatRoom, MessageRecipients, MessageMedia, Message
 from utils.common import generate_response
 from utils.http_code import *
+from flask_socketio import SocketIO, emit, join_room, leave_room
 import json
 from utils.common import get_user_from_token
 from chat.selectors import get_rooms
 from app import session
 from flask import request
-
-users = []  # list of users
-channels = ["Main Channel", "Second Channel"]  # list of channels
-
-# Dictionary of list of dictionaries
-# Contains channel -> messages -> (text, username, AND timestamp)
-messages_dict = {
-    "Main Channel": [
-        {
-            "message": "Welcome, friends!",
-            "username": "Tbone",
-            "timestamp": "2019-04-07"
-        },
-        {
-            "message": "Hi, nice to meet you :)!",
-            "username": "Georgie",
-            "timestamp": "2019-04-07"
-        }],
-    "Second Channel": [
-        {
-            "message": "hello!",
-            "username": "random_person_123",
-            "timestamp": "2019-03-06"
-        }
-    ]
-}
-message_limit = 100
+from utils.services.email_service import send_chat_notification
 
 
 @socketio.on('connected')
@@ -116,17 +90,17 @@ def create_new_channel(data):
     """
     # channel = clean_up_channel_name(data["channel"])
     from utils.common import get_user_from_token
-    user_id = get_user_from_token(token=data['Authorization'])
-    error = validate_room(data, user_id)
+    user = get_user_from_token(token=data['Authorization'])
+    error = validate_room(data, user['id'])
     if error:
         emit("room_creation_failed", error, broadcast=False)
     from utils.common import get_user_from_token
-    user_id = get_user_from_token(data['Authorization'] if 'Authorization' in data else '61010e5289d57973f9010b04')
+    # user = get_user_from_token(token=data['Authorization'] if 'Authorization' in data else '61010e5289d57973f9010b04')
     chat_room = ChatRoom(name=data['name'] if 'name' in data else '')
-    chat_room.creator = UserLoginInfo.objects.get(id=user_id)
+    chat_room.creator = UserLoginInfo.objects.get(id=user['id'])
     chat_room.is_group = data['is_group'] if 'is_group' in data else True
     chat_room.save()
-    admins = UserLoginInfo.objects.get(id=user_id)
+    admins = UserLoginInfo.objects.get(id=user['id'])
     chat_room.name = data['name']
     chat_room.admins = [admins]
     participant_ids = data['participants'] if 'participants' else []
@@ -135,7 +109,8 @@ def create_new_channel(data):
         participants.append(UserLoginInfo.objects.get(id=participant))
     chat_room.participants = participants
     chat_room.save()
-    emit("add_room", {"channel": json.loads(chat_room.to_json())}, broadcast=True)
+    join_room(str(chat_room.id))
+    emit("add_room", {"channel": chat_room.to_json()}, broadcast=True)
 
 
 # @socketio.on("move to channel")
@@ -183,7 +158,37 @@ def new_message(data):
         "timestamp": timestamp,
         "sender": sender.to_json()
     }
+    # import pdb;
+    # pdb.set_trace()
+    # clients = get_chat_clients(room_data)
+    try:
+        send_email_notification(room_data, message.message_body, user.email)
+    except Exception as e:
+        print(e)
+
     emit("message_broadcast", data, broadcast=True)
+
+
+def send_email_notification(room_data, message_body, sender_email):
+    recipient_emails = list
+    for participant in room_data.participants:
+        is_user_found = False
+        for key, value in session.chat_clients.items():
+            if str(participant.id) == value['user']['id']:
+                is_user_found = True
+        if not is_user_found:
+            recipient_emails.append(participant.email)
+    send_chat_notification(recipient_emails, message_body, sender_email)
+
+
+def get_chat_clients(room_data):
+    clients = []
+    for participant in room_data.participants:
+        for key, value in session.chat_clients.items():
+            if str(participant.id) == value['user']['id']:
+                clients.append(key)
+
+    return clients
 
 
 # @socketio.on("verify channel")

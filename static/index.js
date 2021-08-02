@@ -1,5 +1,26 @@
 /* globals io */
 
+typeof Notification !== "undefined"
+Notification.permission
+Notification.requestPermission().then(function (permission) {
+    console.log(permission);
+});
+
+
+function generate_browser_notification(title, icon, body) {
+    var notification = new Notification(title, {body, icon});
+    // notification.close();
+}
+
+localStorage.removeItem('currentRoom')
+
+// let showNotification = document.visibilityState !== "visible";
+// if(showNotification) {
+//    // Notification code
+// }
+//
+// var notification = new Notification('Travel');
+// notification.close();
 
 function chatHTML(message, user, timestamp) {
     return `
@@ -27,7 +48,7 @@ function select_chat(room_id) {
             const messages = data.data.messages;
             currentRoom = data.data.room;
             // Save the current channel into the local storage
-            localStorage.setItem('currentRoom', currentRoom);
+            // localStorage.setItem('currentRoom', currentRoom);
 
             // Highlight the chatroom button that the user is currently in
             document.getElementById(currentRoom).className = 'btn btn-primary';
@@ -340,7 +361,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('message_broadcast', data => {
         // Set variable
-        debugger;
         const {message_body} = data.message_body;
         const {room} = data;
         const {timestamp} = data;
@@ -348,7 +368,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const chatroom = document.querySelector('#messages-list');
 
         // Check if the user is in the channel (whether they should see the message)
-        if (currentRoom === room) {
+        generate_browser_notification(title = 'New Message: '+ message_body, body = message_body)
+        if (localStorage.getItem('currentRoom') === room) {
             // Create the divider element
             const divider = document.createElement('hr');
             divider.className = 'my-1';
@@ -364,6 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Move the scrollbar to the bottom of the chat
             const objDiv = document.getElementById('messages-list');
             objDiv.scrollTop = objDiv.scrollHeight;
+
         }
     });
 

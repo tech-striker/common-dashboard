@@ -12,7 +12,7 @@ from .models import MessageMedia, MessageRecipients, Message, ChatRoom
 
 
 def get_rooms(input_data, user_id):
-    rooms = ChatRoom.objects.select_related(3)
+    rooms = ChatRoom.objects(participants__contains=user_id).select_related(3)
 
     for room in rooms:
         if not room['is_group']:

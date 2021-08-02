@@ -19,3 +19,15 @@ def send_verification_email(request, input_data, user):
     )
     msg.html = f"Please click on the link to confirm your registration, {domain}api/auth/verify-account/{uid}/{token}"
     mail.send(msg)
+
+
+def send_chat_notification(recipient_emails, message_body, sender_email):
+    from app import mail
+    mail_subject = 'New message from ' + sender_email
+    msg = Message(
+        mail_subject,
+        sender='nkcse0007@gmail.com',
+        recipients=[recipient_emails]
+    )
+    msg.html = f'<h3>{message_body}</h3>'
+    mail.send(msg)
