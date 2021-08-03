@@ -8,6 +8,7 @@ import datetime
 import random
 from utils.jwt.jwt_security import JwtAuth
 import os
+from payment.services import create_payment_customer
 
 expiry = datetime.timedelta(days=5)
 
@@ -43,10 +44,12 @@ def login_user(request, input_data):
 
 
 def social_login(request, input_data):
+    new_user = False
     try:
         user = UserLoginInfo.objects.get(email=input_data['email'].lower())
     except:
         user = UserLoginInfo(**input_data)
+        new_user = True
         # provider random default password
         user.password = str(random.randint(10000000, 99999999))
     errors = user.clean()
@@ -64,6 +67,8 @@ def social_login(request, input_data):
     # if input_data['role'] == B2B_USER:
     #     user.parent = self.input_data['parent']
     user.save()
+    if new_user:
+        create_payment_customer(user)
 
     access_token, refresh_token = get_refresh_access_token(request, user)
     return generate_response(data={'access_token': access_token,
