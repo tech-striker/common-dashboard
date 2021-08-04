@@ -36,7 +36,7 @@ class JwtAuth:
             origin = ''
 
         encoded_jwt = jwt.encode(
-            {'id': payload['id'], 'email': payload['email']},
+            {'id': payload['id'], 'email': payload['email'], 'role': payload['role']},
             private_key, algorithm='RS512', headers={
                 'exp': (datetime.now() + timedelta(days=10)).timestamp(),
                 'aud': origin,

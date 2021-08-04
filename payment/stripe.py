@@ -18,7 +18,7 @@ def create_stripe_customer(name, email, phone):
             'state': 'CA',
             'country': 'US', }, }
         response = stripe.Customer.create(**params)
-        return response.id
+        return response
     except Exception as e:
         print('Error creating stripe customer: %s', e.__str__())
         return None
@@ -50,14 +50,14 @@ def stripe_card_create(customer_id, token_id):
     return response
 
 
-def create_stripe_charge(amount, currency, source, customer_id):
+def create_stripe_charge(amount, currency, source_id, customer_id):
     response = None
     # import pdb;pdb.set_trace()
     try:
         response = stripe.Charge.create(
             amount=int(amount) * 100,
             currency=str(currency).lower(),
-            source=source,
+            source=source_id,
             customer=customer_id,
             description="My First Test Charge (created for API docs)",
             shipping={
@@ -72,11 +72,11 @@ def create_stripe_charge(amount, currency, source, customer_id):
     return response
 
 
-def refund_stripe_charge(earnest_charge_id=None):
+def refund_stripe_charge(payment_id=None):
     response = None
     try:
         response = stripe.Refund.create(
-            charge=earnest_charge_id,
+            charge=payment_id,
         )
     except Exception as e:
         print(e.__str__())

@@ -96,7 +96,7 @@ def update_user(input_data, user):
 def get_refresh_access_token(request, user):
     Jwt = JwtAuth(os.environ.get('VERIFY_TOKEN'))
     response = {
-        'id': str(user.id), 'email': user.email,
+        'id': str(user.id), 'email': user.email, 'role': user.role,
         'auth_type': user.auth_type,
     }
     return Jwt.encode(response, request, user)

@@ -76,6 +76,8 @@ def get_flask_app(config: dict = None) -> app.Flask:
     create_authentication_routes(api=api)
     from chat.routes import create_chat_routes
     create_chat_routes(api=api)
+    from payment.routes import create_payment_routes
+    create_payment_routes(api=api)
 
     db.init_app(flask_app)
 
