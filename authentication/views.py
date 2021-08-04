@@ -97,7 +97,3 @@ class UserProfileApi(Resource):
         user = UserLoginInfo.objects.get(id=jwt_payload['id'])
         response = update_user(input_data, user)
         return jsonify(response)
-
-
-def ChatApi():
-    pass
