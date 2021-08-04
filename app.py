@@ -44,7 +44,21 @@ default_config = {
     'SECRET_KEY': os.environ.get('SECRET_KEY'),
     'JWT_SECRET_KEY': os.environ['JWT_SECRET_KEY'],
     "SESSION_PERMANENT": False,
-    "SESSION_TYPE": "filesystem"
+    "SESSION_TYPE": "filesystem",
+    'CORS_HEADERS': 'Content-Type',
+    'CORS_ALLOW_HEADERS': "*",
+    'CORS_ALWAYS_SEND': True,
+    'CORS_AUTOMATIC_OPTIONS': True,
+    'CORS_EXPOSE_HEADERS': None,
+    'CORS_INTERCEPT_EXCEPTIONS': True,
+    'CORS_MAX_AGE': None,
+    'CORS_METHODS': ["GET", "HEAD", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"],
+    'CORS_ORIGINS': "*",
+    'CORS_RESOURCES': r"/*",
+    'CORS_SEND_WILDCARD': False,
+    'CORS_SUPPORTS_CREDENTIALS': False,
+    'CORS_VARY_HEADER': True,
+
 }
 
 
@@ -57,7 +71,7 @@ def get_flask_app(config: dict = None) -> app.Flask:
     """
     # init flask
     flask_app = Flask(__name__)
-    CORS(flask_app)
+    CORS(flask_app, resources={r"/": {"origins": "*"}})
 
     # configure app
     config = default_config if config is None else config
