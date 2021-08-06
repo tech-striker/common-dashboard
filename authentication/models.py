@@ -42,7 +42,7 @@ class UserLoginInfo(AbstractBaseModel):
     phone = db.StringField(default='', required=False)
     intro = db.StringField(default='', required=False)
     profile_image = db.URLField(default='https://www.classifapp.com/wp-content/uploads/2017/09/avatar-placeholder.png',
-                             required=False)
+                                required=False)
     social_id = db.StringField(default='', required=False)
     language = db.EmbeddedDocumentField(Language)
     is_active = db.BooleanField(default=True)
