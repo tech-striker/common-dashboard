@@ -158,8 +158,6 @@ def new_message(data):
         "timestamp": timestamp,
         "sender": sender.to_json()
     }
-    # import pdb;
-    # pdb.set_trace()
     # clients = get_chat_clients(room_data)
     try:
         send_email_notification(room_data, message.message_body, user.email)

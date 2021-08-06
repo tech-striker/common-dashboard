@@ -1,7 +1,7 @@
 from flask_restful import Api
 
 # project resources
-from payment.views import CardApi, PaymentApi, RefundApi, GenerateRefundApi, CancelRefundApi
+from payment.views import CardApi, PaymentApi, RefundApi, GenerateRefundApi, CancelRefundApi, StripeWebhookApi
 
 
 def create_payment_routes(api: Api):
@@ -21,3 +21,4 @@ def create_payment_routes(api: Api):
     api.add_resource(RefundApi, '/api/payment/refund/')
     api.add_resource(GenerateRefundApi, '/api/payment/generate-refund/<payment_id>')
     api.add_resource(CancelRefundApi, '/api/payment/cancel-refund/')
+    api.add_resource(StripeWebhookApi, '/api/payment/stripe-webhook/')

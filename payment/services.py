@@ -31,7 +31,6 @@ def delete_card(card_id):
 
 
 def create_payment_customer(user):
-    import pdb;pdb.set_trace()
     customer_data = create_stripe_customer(user.name, user.email, user.phone)
     customer = PaymentCustomerModel(user=user.id)
     customer.customer_id = customer_data['id']
@@ -39,7 +38,6 @@ def create_payment_customer(user):
 
 
 def create_payment(input_data, user_id):
-    import pdb;pdb.set_trace()
     customer = PaymentCustomerModel.objects(user=user_id).get()
     card_data = CardModel.objects(id=input_data['card']).get()
     payment_data = create_stripe_charge(input_data['amount'], input_data['currency'], card_data['stripe_card_id'],

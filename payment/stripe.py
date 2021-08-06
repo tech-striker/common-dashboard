@@ -52,7 +52,6 @@ def stripe_card_create(customer_id, token_id):
 
 def create_stripe_charge(amount, currency, source_id, customer_id):
     response = None
-    # import pdb;pdb.set_trace()
     try:
         response = stripe.Charge.create(
             amount=int(amount) * 100,
@@ -82,3 +81,24 @@ def refund_stripe_charge(payment_id=None):
         print(e.__str__())
         response = None
     return response
+
+
+from payment.models import PaymentModel
+
+
+def stripe_webhook(request):
+    payload = request.get_json()
+    sig_header = request.headers['HTTP_STRIPE_SIGNATURE']
+
+    event = stripe.Webhook.construct_event(
+        payload, sig_header, os.environ.get('STRIPE_WEBHOOK_SECRET')
+    )
+    payment_id = event['data']['object']['charge']
+    payment = PaymentModel.objects(payment_id=payment_id).first()
+
+    if event['type'] == 'charge.succeeded':
+        payment.status = 'PAYMENT_SUCCESS'
+
+    if event['type'] == 'charge.refunded':
+        payment.status = 'PAYMENT_SUCCESS'
+    payment.save()

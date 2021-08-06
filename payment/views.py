@@ -7,6 +7,7 @@ from .selectors import get_cards, get_invoices, get_refunds
 from .services import create_card, validate_card_input_data, delete_card, validate_payment_input_data, create_payment, \
     validate_refund_input_data, create_refund, generate_refund, cancel_refund
 from utils.http_code import *
+from payment.stripe import stripe_webhook
 
 
 class CardApi(Resource):
@@ -20,7 +21,6 @@ class CardApi(Resource):
     @staticmethod
     @authenticate_login
     def post():
-        import pdb;pdb.set_trace()
         input_data = request.get_json()
         user = get_user_from_token(request)
         error = validate_card_input_data(input_data)
@@ -100,3 +100,12 @@ class CancelRefundApi(Resource):
         user = get_user_from_token(request)
         response = cancel_refund(input_data, user)
         return jsonify(response)
+
+
+class StripeWebhookApi(Resource):
+    @staticmethod
+    def post():
+        try:
+            stripe_webhook(request)
+        except:pass
+        return 200
