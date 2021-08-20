@@ -71,7 +71,7 @@ def get_flask_app(config: dict = None) -> app.Flask:
     """
     # init flask
     flask_app = Flask(__name__)
-    CORS(flask_app, resources={r"/": {"origins": "*"}})
+    CORS(flask_app, resources={r"/*": {"origins": "*"}})
 
     # configure app
     config = default_config if config is None else config
@@ -88,8 +88,6 @@ def get_flask_app(config: dict = None) -> app.Flask:
     api = Api(app=flask_app)
     from authentication.routes import create_authentication_routes
     create_authentication_routes(api=api)
-    from chat.routes import create_chat_routes
-    create_chat_routes(api=api)
     from payment.routes import create_payment_routes
     create_payment_routes(api=api)
 

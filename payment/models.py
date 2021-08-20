@@ -9,11 +9,13 @@ from utils.constants import DEFAULT_PAYMENT_STATUS_TYPE, DEFAULT_REFUND_STATUS_T
 class PaymentCustomerModel(AbstractBaseModel):
     user = db.ReferenceField(UserLoginInfo, required=True)
     customer_id = db.StringField(required=True)
+    payment_gateway = db.StringField(required=True, choices=PAYMENT_GATEWAY_TYPES, default=STRIPE_GATEWAY)
 
     def to_json(self, *args, **kwargs):
         return {
             "id": str(self.pk),
-            "user": self.user.to_json()
+            "user": self.user.to_json(),
+            "payment_gateway": self.payment_gateway
         }
 
 
@@ -22,6 +24,7 @@ class CardModel(AbstractBaseModel):
     last_4 = db.StringField(length=4, required=True)
     stripe_card_id = db.StringField(required=True)
     card_type = db.StringField(required=True)
+    payment_gateway = db.StringField(required=True, choices=PAYMENT_GATEWAY_TYPES, default=STRIPE_GATEWAY)
     is_primary = db.BooleanField(default=False)
 
     def to_json(self, *args, **kwargs):
@@ -32,6 +35,7 @@ class CardModel(AbstractBaseModel):
             "stripe_card_id": self.stripe_card_id,
             "card_type": self.card_type,
             "is_primary": self.is_primary,
+            "payment_gateway": self.payment_gateway,
             "created_at": self.created_at
         }
 
@@ -39,10 +43,12 @@ class CardModel(AbstractBaseModel):
 class PaymentModel(AbstractBaseModel):
     user = db.ReferenceField(UserLoginInfo, required=True)
     order = db.StringField(required=True)
-    card = db.ReferenceField(CardModel)
-    payment_id = db.StringField(required=True)
+    card = db.ReferenceField(CardModel, required=False)
+    payment_id = db.StringField(required=False, default='')
     amount = db.IntField(required=True)
     currency = db.StringField(default='USD')
+    payment_link_ref_id = db.StringField(default='', required=False)
+    payment_gateway = db.StringField(required=True, choices=PAYMENT_GATEWAY_TYPES, default=STRIPE_GATEWAY)
     status = db.StringField(choices=PAYMENT_STATUS_TYPES, required=True, default=DEFAULT_PAYMENT_STATUS_TYPE)
 
     def to_json(self, *args, **kwargs):
@@ -55,6 +61,7 @@ class PaymentModel(AbstractBaseModel):
             "amount": self.amount,
             "currency": self.currency,
             "status": self.status,
+            "payment_gateway": self.payment_gateway,
             "created_at": self.created_at
         }
 

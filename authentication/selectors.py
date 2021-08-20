@@ -8,7 +8,7 @@ import datetime
 import random
 from utils.jwt.jwt_security import JwtAuth
 import os
-from payment.services import create_payment_customer
+from payment.services import stripe_create_payment_customer
 
 expiry = datetime.timedelta(days=5)
 
@@ -68,7 +68,7 @@ def social_login(request, input_data):
     #     user.parent = self.input_data['parent']
     user.save()
     if new_user:
-        create_payment_customer(user)
+        stripe_create_payment_customer(user)
 
     access_token, refresh_token = get_refresh_access_token(request, user)
     return generate_response(data={'access_token': access_token,
@@ -82,6 +82,9 @@ def update_user(input_data, user):
     if 'name' in input_data and input_data['name']:
         user.name = input_data['name']
     if 'phone' in input_data and input_data['phone']:
+        if 'phone_code' not in input_data or not input_data['phone_code']:
+            return generate_response(message='Phone code is required')
+        user.phone_code = input_data['phone_code']
         user.phone = input_data['phone']
     if 'profile_image' in input_data and input_data['profile_image']:
         user.profile_image = input_data['profile_image']
@@ -96,7 +99,11 @@ def update_user(input_data, user):
 def get_refresh_access_token(request, user):
     Jwt = JwtAuth(os.environ.get('VERIFY_TOKEN'))
     response = {
-        'id': str(user.id), 'email': user.email, 'role': user.role,
+        'id': str(user.id),
+        'name': user.name,
+        'phone': user.phone,
+        'email': user.email,
+        'role': user.role,
         'auth_type': user.auth_type,
     }
     return Jwt.encode(response, request, user)

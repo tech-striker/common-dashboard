@@ -2,7 +2,8 @@
 from flask_restful import Api
 
 # project resources
-from authentication.views import SignUpApi, VerifyUserApi, SocialLoginApi, EmailLoginApi,UserProfileApi
+from authentication.views import SignUpApi, VerifyUserApi, SocialLoginApi, EmailLoginApi, UserProfileApi, UserListApi, \
+    UserProfileByIdApi
 
 
 def create_authentication_routes(api: Api):
@@ -22,3 +23,5 @@ def create_authentication_routes(api: Api):
     api.add_resource(SocialLoginApi, '/api/auth/social-login/')
     api.add_resource(VerifyUserApi, '/api/auth/verify-account/<uid>/<token>')
     api.add_resource(UserProfileApi, '/api/auth/user-profile/')
+    api.add_resource(UserProfileByIdApi, '/api/auth/user-profile/<user_id>')
+    api.add_resource(UserListApi, '/api/auth/user-list/')

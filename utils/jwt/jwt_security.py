@@ -35,8 +35,7 @@ class JwtAuth:
             # print(e)
             origin = ''
 
-        encoded_jwt = jwt.encode(
-            {'id': payload['id'], 'email': payload['email'], 'role': payload['role']},
+        encoded_jwt = jwt.encode(payload,
             private_key, algorithm='RS512', headers={
                 'exp': (datetime.now() + timedelta(days=10)).timestamp(),
                 'aud': origin,
@@ -46,8 +45,7 @@ class JwtAuth:
                 'iat': int(datetime.now().timestamp())
             })
 
-        refresh_token = jwt.encode(
-            {'id': payload['id'], 'email': payload['email']},
+        refresh_token = jwt.encode(payload,
             refresh_private_key, algorithm='RS512', headers={
                 'exp': (datetime.now() + timedelta(hours=14)).timestamp(),
                 'aud': origin,

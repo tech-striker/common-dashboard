@@ -40,6 +40,7 @@ class UserLoginInfo(AbstractBaseModel):
     password = db.StringField(required=True, min_length=6, regex=None)
     name = db.StringField(default='', required=False)
     phone = db.StringField(default='', required=False)
+    phone_code = db.StringField(default='', required=False)
     intro = db.StringField(default='', required=False)
     profile_image = db.URLField(default='https://www.classifapp.com/wp-content/uploads/2017/09/avatar-placeholder.png',
                                 required=False)

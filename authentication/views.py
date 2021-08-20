@@ -71,18 +71,25 @@ class VerifyUserApi(Resource):
             return 'Activation link is invalid!'
 
 
+class UserProfileByIdApi(Resource):
+    @staticmethod
+    @authenticate_login
+    def get(user_id=None) -> Response:
+        user = UserLoginInfo.objects(id=user_id).exclude('password').get().to_json()
+        return jsonify(generate_response(data=user, status=HTTP_200_OK))
+
+
 class UserProfileApi(Resource):
     @staticmethod
     @authenticate_login
     def get() -> Response:
         jwt_payload = get_user_from_token(request)
-        user = UserLoginInfo.objects(id=jwt_payload['id']).exclude('password').get()
-        return jsonify(generate_response(data=user, status=HTTP_404_NOT_FOUND))
+        user = UserLoginInfo.objects(id=jwt_payload['id']).exclude('password').get().to_json()
+        return jsonify(generate_response(data=user, status=HTTP_200_OK))
 
     @staticmethod
     @authenticate_login
     def delete() -> Response:
-
         jwt_payload = get_user_from_token(request)
         user = UserLoginInfo.objects.get(id=jwt_payload['id'])
         user.is_deleted = True
@@ -97,3 +104,11 @@ class UserProfileApi(Resource):
         user = UserLoginInfo.objects.get(id=jwt_payload['id'])
         response = update_user(input_data, user)
         return jsonify(response)
+
+
+class UserListApi(Resource):
+    @staticmethod
+    @authenticate_login
+    def get() -> Response:
+        users = UserLoginInfo.objects().exclude('password')
+        return jsonify(generate_response(data=[user.to_json() for user in users], status=HTTP_200_OK))
