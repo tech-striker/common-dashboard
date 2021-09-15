@@ -1,6 +1,6 @@
 import os
 
-from payment.models import CardModel, PaymentCustomerModel, PaymentModel, RefundModel
+from payment.models import CardModel, PaymentCustomerModel, PaymentModel, RefundModel, ShippingAddressModel
 from .stripe import stripe_card_create, stripe_token_create, create_stripe_customer, create_stripe_charge, \
     refund_stripe_charge
 from .razorpay import razorpay_create_customer, razorpay_create_order, razorpay_create_payment_link, \
@@ -61,6 +61,10 @@ def stripe_create_payment(input_data, user):
     payment.currency = input_data['currency']
     payment.payment_id = payment_data['id']
     payment.payment_gateway = STRIPE_GATEWAY
+    if 'shipping_address_id' in input_data:
+        try:
+            payment.shipping_address = ShippingAddressModel.objects.get(id=input_data['shipping_address_id'])
+        except:pass
     payment.save()
     return generate_response(message='Payment initiated please wait to complete.', data=str(payment.id),
                              status=HTTP_200_OK)
@@ -124,6 +128,10 @@ def razorpay_create_payment(request, input_data, user):
     payment.status = PAYMENT_INITIATED
     payment.payment_gateway = RAZORPAY_GATEWAY
     payment.payment_link_ref_id = payment_response['id']
+    if 'shipping_address_id' in input_data:
+        try:
+            payment.shipping_address = ShippingAddressModel.objects.get(id=input_data['shipping_address_id'])
+        except:pass
     payment.save()
     data = {
         'id': str(payment.id),
@@ -159,6 +167,33 @@ def generate_razorpay_refund(payment_id):
     return generate_response(message='Refund generated successful', status=HTTP_200_OK)
 
 
+def create_user_location(jwt_payload, input_data):
+    location = ShippingAddressModel(user=jwt_payload['id'], **input_data)
+    location.save()
+    return generate_response(data=location.to_json(), message='Location created', status=HTTP_201_CREATED)
+
+
+def update_user_location(input_data, location):
+    if 'is_default_location' in input_data and input_data['is_default_location']:
+        location.is_default_location = input_data['is_default_location']
+    if 'location_type' in input_data and input_data['location_type']:
+        location.location_type = input_data['location_type']
+    if 'other_location_title' in input_data and input_data['other_location_title']:
+        location.other_location_title = input_data['other_location_title']
+    if 'latlong' in input_data and input_data['latlong']:
+        location.latlong = input_data['latlong']
+    if 'address' in input_data and input_data['address']:
+        location.address = input_data['address']
+    if 'city' in input_data and input_data['city']:
+        location.city = input_data['city']
+    if 'country' in input_data and input_data['country']:
+        location.country = input_data['country']
+    if 'pin' in input_data and input_data['pin']:
+        location.pin = input_data['pin']
+    location.save()
+    return generate_response(data=location.to_json(), message='Location updated', status=HTTP_200_OK)
+
+
 def validate_card_input_data(input_data):
     if 'card_number' not in input_data or not input_data['card_number']:
         return generate_response(message='Card Number is required')
@@ -168,7 +203,7 @@ def validate_card_input_data(input_data):
         return generate_response(message='Expiry Year is required')
     if 'cvv' not in input_data or not input_data['cvv']:
         return generate_response(message='CVV is required')
-    if CardModel.objects(card_number=input_data['card_number']):
+    if CardModel.objects(last_4=input_data['card_number']):
         return generate_response(message='This card is already saved in our records.')
 
     return None

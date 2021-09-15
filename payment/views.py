@@ -3,13 +3,16 @@ from flask_restful import Resource
 from flask import request, jsonify
 from utils.common import get_user_from_token, generate_response
 from utils.jwt.jwt_security import authenticate_login
-from .selectors import get_cards, get_invoices, get_refunds
+from .selectors import get_cards, get_invoices, get_refunds, get_user_location
 from .services import stripe_create_card, validate_card_input_data, stripe_delete_card, \
     validate_stripe_payment_input_data, \
     stripe_create_payment, validate_refund_input_data, create_refund, stripe_generate_refund, cancel_refund, \
-    razorpay_create_payment, capture_razorpay_payment, validate_razorpay_payment_input_data, generate_razorpay_refund
+    razorpay_create_payment, capture_razorpay_payment, validate_razorpay_payment_input_data, generate_razorpay_refund, \
+    create_user_location, update_user_location
 from utils.http_code import *
 from payment.stripe import stripe_webhook
+from flask import Response
+from payment.models import ShippingAddressModel
 
 
 class InvoiceApi(Resource):
@@ -32,6 +35,7 @@ class StripeCardApi(Resource):
     @staticmethod
     @authenticate_login
     def post():
+        # import pdb;pdb.set_trace()
         input_data = request.get_json()
         user = get_user_from_token(request)
         error = validate_card_input_data(input_data)
@@ -173,3 +177,40 @@ class RazorpayWebhookApi(Resource):
         except:
             pass
         return 200
+
+
+class ShippingAddressApi(Resource):
+
+    @staticmethod
+    @authenticate_login
+    def get() -> Response:
+        jwt_payload = get_user_from_token(request)
+        input_data = request.values.to_dict()
+        response = get_user_location(jwt_payload, input_data)
+        return jsonify(response)
+
+    @staticmethod
+    def post() -> Response:
+        input_data = request.get_json()
+        jwt_payload = get_user_from_token(request)
+        response = create_user_location(jwt_payload, input_data)
+        return jsonify(response)
+
+    @staticmethod
+    @authenticate_login
+    def put() -> Response:
+        input_data = request.get_json()
+        location = ShippingAddressModel.objects.get(id=input_data['id'])
+        response = update_user_location(input_data, location)
+        return jsonify(response)
+
+    @staticmethod
+    @authenticate_login
+    def delete() -> Response:
+        input_data = request.get_json()
+        location = ShippingAddressModel.objects.get(id=input_data['id'])
+        location.delete()
+        location.save()
+        return jsonify(
+            generate_response(data=location.to_json()['id'], message='Location deleted.', status=HTTP_200_OK)
+        )

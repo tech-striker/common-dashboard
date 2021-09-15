@@ -17,7 +17,7 @@ def send_verification_email(request, input_data, user):
         sender='nkcse0007@gmail.com',
         recipients=[user.email]
     )
-    msg.html = f"Please click on the link to confirm your registration, {domain}api/auth/verify-account/{uid}/{token}"
+    msg.html = f"Please click on the link to confirm your registration, {domain}api/auth/verify-account/{uid}/{token.decode()}"
     mail.send(msg)
 
 

@@ -1,7 +1,7 @@
 # from flask_jwt_extended import create_access_token, create_refresh_token
 
 # project resources
-from authentication.models import UserLoginInfo
+from authentication.models import UserLoginInfo, UserLocation
 from utils.common import generate_response
 from utils.http_code import *
 import datetime
@@ -74,7 +74,7 @@ def social_login(request, input_data):
     return generate_response(data={'access_token': access_token,
                                    'refresh_token': refresh_token,
                                    'logged_in_as': f"{user.email}",
-                                   'meta': user
+                                   'meta': user.to_json()
                                    }, status=HTTP_200_OK)
 
 
@@ -92,6 +92,9 @@ def update_user(input_data, user):
         user.intro = input_data['intro']
     if 'is_active' in input_data:
         user.is_active = True
+    if 'location' in input_data:
+        location = UserLocation(**input_data['location'])
+        user.location = location
     user.save()
     return generate_response(data=user.to_json(), message='User updated', status=HTTP_200_OK)
 

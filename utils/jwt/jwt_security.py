@@ -34,7 +34,6 @@ class JwtAuth:
             print('EXCEPTION IN ORIGIN>>')
             # print(e)
             origin = ''
-
         encoded_jwt = jwt.encode(payload,
             private_key, algorithm='RS512', headers={
                 'exp': (datetime.now() + timedelta(days=10)).timestamp(),
@@ -113,7 +112,6 @@ def authenticate_login(fun):
             except Exception as e:
                 print(e)
                 return generate_response(message='Unauthorised user', status=HTTP_401_UNAUTHORIZED)
-
             if datetime.fromtimestamp(headers['exp']) < datetime.now():
                 return generate_response(message='Token Expired.', status=HTTP_401_UNAUTHORIZED)
 
@@ -138,8 +136,8 @@ def authenticate_login(fun):
 
         except Exception as e:
             print(e)
-            return generate_response(message='Authentication failed, Invalid token. Please login again.',
-                                     status=HTTP_401_UNAUTHORIZED)
+            return generate_response(message=str(e),
+                                     status=HTTP_400_BAD_REQUEST)
 
     return function_wrapper
 

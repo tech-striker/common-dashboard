@@ -2,7 +2,8 @@ from flask_restful import Api
 
 # project resources
 from payment.views import StripeCardApi, StripePaymentApi, RefundApi, StripeGenerateRefundApi, CancelRefundApi, \
-    StripeWebhookApi, InvoiceApi, RazorpayPaymentApi, RazorpayCapturePaymentApi, RazorpayGenerateRefundApi, RazorpayWebhookApi
+    StripeWebhookApi, InvoiceApi, RazorpayPaymentApi, RazorpayCapturePaymentApi, RazorpayGenerateRefundApi, \
+    RazorpayWebhookApi, ShippingAddressApi
 
 
 def create_payment_routes(api: Api):
@@ -36,3 +37,7 @@ def create_payment_routes(api: Api):
     api.add_resource(RefundApi, '/api/payment/refund/')
     api.add_resource(CancelRefundApi, '/api/payment/cancel-refund/')
     api.add_resource(InvoiceApi, '/api/payment/get-invoices/')
+
+    # LOCATIONS
+    api.add_resource(ShippingAddressApi, '/api/payment/shipping-address/')
+

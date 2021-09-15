@@ -40,9 +40,49 @@ class CardModel(AbstractBaseModel):
         }
 
 
+class ShippingAddressModel(AbstractBaseModel):
+    user = db.ReferenceField(UserLoginInfo, required=True, reverse_delete_rule=db.CASCADE)
+    is_default_location = db.BooleanField(default=False)
+    location_type = db.StringField(choices=LOCATION_TYPES, default=DEFAULT_LOCATION_TYPE, required=True)
+    other_location_title = db.StringField(default='', required=False)
+    latlong = db.GeoPointField(required=False)
+    address = db.StringField(default='', required=False)
+    city = db.StringField(default='', required=False)
+    country = db.StringField(default='', required=False)
+    pin = db.StringField(default='', required=False)
+
+    meta = {
+        'auto_create_index': True,
+        'index_background': True,
+        'indexes': [
+            {
+                'name': 'created_at',
+                'fields': ('created_at',)
+            }
+        ]
+    }
+
+    def to_json(self, *args, **kwargs):
+        return {
+            "id": str(self.pk),
+            "user": self.user.to_json(),
+            "is_default_location": self.is_default_location,
+            "location_type": self.location_type,
+            "other_location_title": self.other_location_title,
+            "latlong": self.latlong,
+            "address": self.address,
+            "city": self.city,
+            "country": self.country,
+            "pin": self.pin,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+        }
+
+
 class PaymentModel(AbstractBaseModel):
     user = db.ReferenceField(UserLoginInfo, required=True)
     order = db.StringField(required=True)
+    shipping_address = db.ReferenceField(ShippingAddressModel, required=False)
     card = db.ReferenceField(CardModel, required=False)
     payment_id = db.StringField(required=False, default='')
     amount = db.IntField(required=True)
@@ -55,8 +95,9 @@ class PaymentModel(AbstractBaseModel):
         return {
             "id": str(self.pk),
             "order": self.order,
+            "shipping_address": self.shipping_address.to_json() if self.shipping_address else {},
             "user": str(self.user),
-            "card": self.card.to_json(),
+            "card": self.card.to_json() if self.card else {},
             "payment_id": self.payment_id,
             "amount": self.amount,
             "currency": self.currency,

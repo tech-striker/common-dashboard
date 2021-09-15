@@ -32,6 +32,14 @@ class Language(db.EmbeddedDocument):
     code = db.StringField(default='en')
 
 
+class UserLocation(db.EmbeddedDocument):
+    latlong = db.GeoPointField(required=False)
+    address = db.StringField(default='', required=False)
+    city = db.StringField(default='', required=False)
+    country = db.StringField(default='', required=False)
+    pin = db.StringField(default='', required=False)
+
+
 class UserLoginInfo(AbstractBaseModel):
     parent = db.StringField(required=False)
     auth_type = db.StringField(choices=LOGIN_TYPE, required=True)
@@ -46,6 +54,7 @@ class UserLoginInfo(AbstractBaseModel):
                                 required=False)
     social_id = db.StringField(default='', required=False)
     language = db.EmbeddedDocumentField(Language)
+    location = db.EmbeddedDocumentField(UserLocation, default=dict)
     is_active = db.BooleanField(default=True)
     is_deleted = db.BooleanField(default=False)
     is_verified = db.BooleanField(default=False)
@@ -104,6 +113,7 @@ class UserLoginInfo(AbstractBaseModel):
             "intro": self.intro,
             "profile_image": self.profile_image,
             "language": self.language,
+            "location": self.location,
             "is_active": self.is_active,
             "auth_type": self.auth_type
         }
