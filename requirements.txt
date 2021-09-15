@@ -8,7 +8,7 @@ certifi==2021.5.30
 cffi==1.14.0
 charset-normalizer==2.0.3
 click==7.1.1
-cryptography==3.4.7
+# cryptography==3.4.7
 dateutils==0.6.12
 decorator==5.0.9
 dictdiffer==0.8.1
@@ -19,7 +19,7 @@ Flask-Bcrypt==0.7.1
 Flask-Cors==3.0.10
 Flask-Mail==0.9.1
 Flask-Migrate==3.0.1
-flask-mongoengine==0.9.5
+# flask-mongoengine==0.9.5
 Flask-RESTful==0.3.8
 Flask-Script==2.0.6
 Flask-Session==0.4.0

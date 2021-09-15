@@ -9,12 +9,14 @@ from .services import stripe_create_card, validate_card_input_data, stripe_delet
     stripe_create_payment, validate_refund_input_data, create_refund, stripe_generate_refund, cancel_refund, \
     razorpay_create_payment, capture_razorpay_payment, validate_razorpay_payment_input_data, generate_razorpay_refund, \
     create_user_location, update_user_location
+from .paypal import create_capture_order,capture_order, get_order
 from utils.http_code import *
 from payment.stripe import stripe_webhook
 from flask import Response
 from payment.models import ShippingAddressModel
 
 
+    
 class InvoiceApi(Resource):
     @staticmethod
     @authenticate_login
@@ -214,3 +216,40 @@ class ShippingAddressApi(Resource):
         return jsonify(
             generate_response(data=location.to_json()['id'], message='Location deleted.', status=HTTP_200_OK)
         )
+
+
+# def fun():
+#     return "hello"
+
+class PaypalPaymentApi(Resource):
+    @staticmethod
+    # @authenticate_login
+    def post():
+        input_data = request.get_json()
+        response = create_capture_order(input_data["currency_code"],input_data["amount"])
+        return jsonify(response)
+
+class PaypalCreateCaptureOrderApi(Resource):
+    @staticmethod
+
+    def get():
+        # import pdb;pdb.set_trace()
+        input_data = request.get_json()
+        response = capture_order(input_data["currency_code"],input_data["amount"])
+        return jsonify(response)
+
+class PaypalGetOrderApi(Resource):
+    @staticmethod
+    def get():
+        # import pdb;pdb.set_trace()
+      
+        input_data = request.values.to_dict()
+        response = get_order(input_data['order_id'])
+        return jsonify(response)
+
+def PaypalCaptureOrderApi(request):
+    @staticmethod
+    def post():
+        input_data = request.values.to_dict()
+        response = capture_order(input_data['order_id'])
+        return jsonify(response)
